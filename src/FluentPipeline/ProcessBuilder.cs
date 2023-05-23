@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using DotNext;
 using IBuilder;
 
@@ -7,54 +9,88 @@ namespace FluentPipeline;
 public class ProcessBuilder<TError, TP> : IBuilder<Process<TError, TP>>
     where TError : struct, Enum
 {
-    private readonly PipelineBuilder<TError, TP> _parent;
+    protected readonly PipelineBuilder<TError, TP> _parent;
+    private readonly Func<TP, Result<TError>> _process;
 
-    public ProcessBuilder(PipelineBuilder<TError, TP> parent)
+    internal ProcessBuilder(
+        PipelineBuilder<TError, TP> parent,
+        Func<TP, Result<TError>> process
+    )
     {
         _parent = parent;
+        _process = process;
     }
 
-    public ProcessBuilder<TError, TP> Then(Func<TP, Result<object?, TError>> process) =>
-        _parent.Then(process);
-
-    public ProcessBuilder<TError, TP, TI> Then<TI>(Func<TP, TI, Result<object?, TError>> process) =>
-        _parent.Then<TI>(process);
+    public PipelineBuilder<TError, TP> Setup() => _parent;
 
     public virtual Process<TError, TP> Build()
     {
-        throw new NotImplementedException();
-    }
-
-    public ProcessBuilder<TError, TP, TI> Produces<TI>(Func<object, TI> cast)
-    {
-        throw new NotImplementedException();
-    }
-
-    public ProcessBuilder<TError, TP> Requires<TEngine, TFuel>(Func<object, TFuel> cast)
-    {
-        throw new NotImplementedException();
+        var process = new Process<TError, TP>(_process);
+        return process;
     }
 }
 
-public class ProcessBuilder<TError, TP, TI> : ProcessBuilder<TError, TP>, IBuilder<Process<TError, TP, TI>>
+public class ProcessBuilderO<TError, TP, TO> : ProcessBuilder<TError, TP>
     where TError : struct, Enum
 {
-    public ProcessBuilder(PipelineBuilder<TError, TP> parent) : base(parent)
+    private readonly Func<TP, Result<TO, TError>> _process;
+
+    internal ProcessBuilderO(PipelineBuilder<TError, TP> parent, Func<TP, Result<TO, TError>> process) : base(parent,
+        null!)
     {
+        _process = process;
     }
 
-    public override Process<TError, TP, TI> Build()
+    public override Process<TError, TP> Build()
     {
-        throw new NotImplementedException();
+        var process = new ProcessO<TError, TP, TO>(_process);
+        return process;
     }
 
-    public ProcessBuilder<TError, TP, TII> Produces<TII>(Func<object, TII> cast)
+    public ProcessBuilderIO<TError, TP, TO, TO2> Then<TO2>(Func<TP, TO, Result<TO2, TError>> process)
     {
-        throw new NotImplementedException();
+        return _parent.Then(_parent, process);
+    }
+}
+
+public class ProcessBuilderIO<TError, TP, TI, TO> : ProcessBuilderO<TError, TP, TO>
+    where TError : struct, Enum
+{
+    private readonly Func<TP, TI, Result<TO, TError>> _process;
+
+    internal ProcessBuilderIO(PipelineBuilder<TError, TP> parent, Func<TP, TI, Result<TO, TError>> process) : base(
+        parent,
+        null!)
+    {
+        _process = process;
     }
 
-    public ProcessBuilder<TError, TP, TI> Requires<TEngine, TFuel>(Func<object, TFuel> cast)
+    public override Process<TError, TP> Build()
     {
-        throw new NotImplementedException();
+        var process = new ProcessIO<TError, TP, TI, TO>(_process);
+        return process;
+    }
+
+    public ProcessBuilderI<TError, TP, TI> Then(Func<TP, TI, Result<TError>> process)
+    {
+        return _parent.Then(_parent, process);
+    }
+}
+
+public class ProcessBuilderI<TError, TP, TI> : ProcessBuilder<TError, TP>
+    where TError : struct, Enum
+{
+    private readonly Func<TP, TI, Result<TError>> _process;
+
+    internal ProcessBuilderI(PipelineBuilder<TError, TP> parent, Func<TP, TI, Result<TError>> process) : base(parent,
+        null!)
+    {
+        _process = process;
+    }
+
+    public override Process<TError, TP> Build()
+    {
+        var process = new ProcessI<TError, TP, TI>(_process);
+        return process;
     }
 }
