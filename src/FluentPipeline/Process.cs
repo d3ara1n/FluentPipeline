@@ -9,9 +9,7 @@ public class Process<TError, TP>
 {
     private readonly Func<TP, Result<TError>> _process;
 
-    internal Process(
-        Func<TP, Result<TError>> process
-    )
+    internal Process(Func<TP, Result<TError>> process)
     {
         _process = process;
     }
@@ -27,7 +25,8 @@ public class ProcessO<TError, TP, TO> : Process<TError, TP>
 {
     private readonly Func<TP, Result<TO, TError>> _process;
 
-    internal ProcessO(Func<TP, Result<TO, TError>> process) : base(null!)
+    internal ProcessO(Func<TP, Result<TO, TError>> process)
+        : base(null!)
     {
         _process = process;
     }
@@ -43,7 +42,8 @@ public class ProcessIO<TError, TP, TI, TO> : Process<TError, TP>
 {
     private readonly Func<TP, TI, Result<TO, TError>> _process;
 
-    internal ProcessIO(Func<TP, TI, Result<TO, TError>> process) : base(null!)
+    internal ProcessIO(Func<TP, TI, Result<TO, TError>> process)
+        : base(null!)
     {
         _process = process;
     }
@@ -58,8 +58,9 @@ public class ProcessI<TError, TP, TI> : Process<TError, TP>
     where TError : struct, Enum
 {
     private readonly Func<TP, TI, Result<TError>> _process;
-    
-    internal ProcessI(Func<TP, TI, Result<TError>> process) : base(null!)
+
+    internal ProcessI(Func<TP, TI, Result<TError>> process)
+        : base(null!)
     {
         _process = process;
     }

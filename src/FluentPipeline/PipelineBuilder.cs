@@ -11,9 +11,7 @@ public class PipelineBuilder<TError, TP> : IBuilder<Pipeline<TError, TP>>
     private readonly IList<ProcessBuilder<TError, TP>> builders =
         new List<ProcessBuilder<TError, TP>>();
 
-    private PipelineBuilder()
-    {
-    }
+    private PipelineBuilder() { }
 
     public Pipeline<TError, TP> Build()
     {
@@ -44,15 +42,19 @@ public class PipelineBuilder<TError, TP> : IBuilder<Pipeline<TError, TP>>
         return builder;
     }
 
-    public ProcessBuilderIO<TError, TP, TI, TO> Then<TI, TO>(PipelineBuilder<TError, TP> parent,
-        Func<TP, TI, Result<TO, TError>> process)
+    public ProcessBuilderIO<TError, TP, TI, TO> Then<TI, TO>(
+        PipelineBuilder<TError, TP> parent,
+        Func<TP, TI, Result<TO, TError>> process
+    )
     {
         var builder = new ProcessBuilderIO<TError, TP, TI, TO>(parent, process);
         return builder;
     }
 
-    public ProcessBuilderI<TError, TP, TI> Then<TI>(PipelineBuilder<TError, TP> parent,
-        Func<TP, TI, Result<TError>> process)
+    public ProcessBuilderI<TError, TP, TI> Then<TI>(
+        PipelineBuilder<TError, TP> parent,
+        Func<TP, TI, Result<TError>> process
+    )
     {
         var builder = new ProcessBuilderI<TError, TP, TI>(parent, process);
         return builder;

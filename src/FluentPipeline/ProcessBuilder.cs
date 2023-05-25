@@ -12,10 +12,7 @@ public class ProcessBuilder<TError, TP> : IBuilder<Process<TError, TP>>
     protected readonly PipelineBuilder<TError, TP> _parent;
     private readonly Func<TP, Result<TError>> _process;
 
-    internal ProcessBuilder(
-        PipelineBuilder<TError, TP> parent,
-        Func<TP, Result<TError>> process
-    )
+    internal ProcessBuilder(PipelineBuilder<TError, TP> parent, Func<TP, Result<TError>> process)
     {
         _parent = parent;
         _process = process;
@@ -35,8 +32,11 @@ public class ProcessBuilderO<TError, TP, TO> : ProcessBuilder<TError, TP>
 {
     private readonly Func<TP, Result<TO, TError>> _process;
 
-    internal ProcessBuilderO(PipelineBuilder<TError, TP> parent, Func<TP, Result<TO, TError>> process) : base(parent,
-        null!)
+    internal ProcessBuilderO(
+        PipelineBuilder<TError, TP> parent,
+        Func<TP, Result<TO, TError>> process
+    )
+        : base(parent, null!)
     {
         _process = process;
     }
@@ -47,7 +47,9 @@ public class ProcessBuilderO<TError, TP, TO> : ProcessBuilder<TError, TP>
         return process;
     }
 
-    public ProcessBuilderIO<TError, TP, TO, TO2> Then<TO2>(Func<TP, TO, Result<TO2, TError>> process)
+    public ProcessBuilderIO<TError, TP, TO, TO2> Then<TO2>(
+        Func<TP, TO, Result<TO2, TError>> process
+    )
     {
         return _parent.Then(_parent, process);
     }
@@ -58,9 +60,11 @@ public class ProcessBuilderIO<TError, TP, TI, TO> : ProcessBuilderO<TError, TP, 
 {
     private readonly Func<TP, TI, Result<TO, TError>> _process;
 
-    internal ProcessBuilderIO(PipelineBuilder<TError, TP> parent, Func<TP, TI, Result<TO, TError>> process) : base(
-        parent,
-        null!)
+    internal ProcessBuilderIO(
+        PipelineBuilder<TError, TP> parent,
+        Func<TP, TI, Result<TO, TError>> process
+    )
+        : base(parent, null!)
     {
         _process = process;
     }
@@ -82,8 +86,11 @@ public class ProcessBuilderI<TError, TP, TI> : ProcessBuilder<TError, TP>
 {
     private readonly Func<TP, TI, Result<TError>> _process;
 
-    internal ProcessBuilderI(PipelineBuilder<TError, TP> parent, Func<TP, TI, Result<TError>> process) : base(parent,
-        null!)
+    internal ProcessBuilderI(
+        PipelineBuilder<TError, TP> parent,
+        Func<TP, TI, Result<TError>> process
+    )
+        : base(parent, null!)
     {
         _process = process;
     }

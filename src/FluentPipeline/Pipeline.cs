@@ -10,7 +10,7 @@ public class Pipeline<TError, TP>
 {
     private readonly IList<Process<TError, TP>> _processes;
     public int Count => _processes.Count;
-    
+
     internal Pipeline(IList<Process<TError, TP>> processes)
     {
         _processes = processes;
@@ -21,7 +21,8 @@ public class Pipeline<TError, TP>
         object? product = null;
         foreach (var process in _processes)
         {
-            if (token.IsCancellationRequested) return false;
+            if (token.IsCancellationRequested)
+                return false;
             var type = process.GetType();
             if (type == typeof(ProcessI<,,>))
             {
@@ -58,7 +59,10 @@ public class Pipeline<TError, TP>
             {
                 if (product != null && product.GetType() == type.GetGenericArguments()[2])
                 {
-                    var result = Pump<Result<object, TError>>(process, new object[] { input!, product! });
+                    var result = Pump<Result<object, TError>>(
+                        process,
+                        new object[] { input!, product! }
+                    );
 
                     if (result.IsSuccessful)
                     {
