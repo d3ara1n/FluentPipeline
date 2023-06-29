@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using DotNext;
+﻿using DotNext;
 using IBuilder;
+using System;
+using System.Collections.Generic;
 
 namespace FluentPipeline;
 
@@ -26,14 +26,6 @@ public class PipelineBuilder<TError, TP> : IBuilder<Pipeline<TError, TP>>
         return pipeline;
     }
 
-    public static ProcessBuilder<TError, TP> Create(Func<TP, Result<TError>> process)
-    {
-        var parent = new PipelineBuilder<TError, TP>();
-        var builder = new ProcessBuilder<TError, TP>(parent, process);
-        parent.builders.Add(builder);
-        return builder;
-    }
-
     public static ProcessBuilderO<TError, TP, TO> Create<TO>(Func<TP, Result<TO, TError>> process)
     {
         var parent = new PipelineBuilder<TError, TP>();
@@ -48,15 +40,7 @@ public class PipelineBuilder<TError, TP> : IBuilder<Pipeline<TError, TP>>
     )
     {
         var builder = new ProcessBuilderIO<TError, TP, TI, TO>(parent, process);
-        return builder;
-    }
-
-    public ProcessBuilderI<TError, TP, TI> Then<TI>(
-        PipelineBuilder<TError, TP> parent,
-        Func<TP, TI, Result<TError>> process
-    )
-    {
-        var builder = new ProcessBuilderI<TError, TP, TI>(parent, process);
+        parent.builders.Add(builder);
         return builder;
     }
 }

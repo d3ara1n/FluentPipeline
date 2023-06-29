@@ -1,7 +1,9 @@
-﻿using System;
+﻿using DotNext;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
-using DotNext;
 
 namespace FluentPipeline;
 
@@ -10,6 +12,10 @@ public class Pipeline<TError, TP>
 {
     private readonly IList<Process<TError, TP>> _processes;
     public int Count => _processes.Count;
+
+    private object? waste;
+    private Exception? exception;
+    private TError? error;
 
     internal Pipeline(IList<Process<TError, TP>> processes)
     {
@@ -24,82 +30,113 @@ public class Pipeline<TError, TP>
             if (token.IsCancellationRequested)
                 return false;
             var type = process.GetType();
-            if (type == typeof(ProcessI<,,>))
+            var definition = type.GetGenericTypeDefinition();
+            if (definition == typeof(ProcessO<,,>))
             {
-                if (product != null && product.GetType() == type.GetGenericArguments()[2])
+                try
                 {
-                    var result = Pump<Result<TError>>(process, new object[] { input!, product! });
-                    if (result.IsSuccessful)
-                    {
-                        product = null;
-                    }
-                    else
-                    {
-                        // report
-                    }
-                }
-                else
-                {
-                    // report
-                }
-            }
-            else if (type == typeof(ProcessO<,,>))
-            {
-                var result = Pump<Result<object, TError>>(process, new object[] { input! });
-                if (result.IsSuccessful)
-                {
-                    product = result.Value;
-                }
-                else
-                {
-                    // report
-                }
-            }
-            else if (type == typeof(ProcessIO<,,,>))
-            {
-                if (product != null && product.GetType() == type.GetGenericArguments()[2])
-                {
-                    var result = Pump<Result<object, TError>>(
-                        process,
-                        new object[] { input!, product! }
-                    );
-
+                    var result = Pump(process, new object[] { input! });
                     if (result.IsSuccessful)
                     {
                         product = result.Value;
                     }
                     else
                     {
-                        // report
+                        error = result.Error;
+                        return false;
+                    }
+                }
+                catch (Exception e)
+                {
+                    exception = e;
+                    return false;
+                }
+            }
+            else if (definition == typeof(ProcessIO<,,,>))
+            {
+                if (product != null && product.GetType() == type.GetGenericArguments()[2])
+                {
+                    try
+                    {
+                        var result = Pump(process, new object[] { input!, product! });
+
+                        if (result.IsSuccessful)
+                        {
+                            product = result.Value;
+                        }
+                        else
+                        {
+                            error = result.Error;
+                            return false;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        exception = e;
+                        return false;
                     }
                 }
                 else
                 {
-                    // report
+                    throw new UnreachableException();
                 }
             }
             else
             {
-                var result = Pump<Result<TError>>(process, new object[] { input! });
-                if (result.IsSuccessful)
-                {
-                    product = null;
-                }
-                else
-                {
-                    // report
-                }
+                throw new UnreachableException();
             }
             // look for requirement meet list
         }
 
-        throw new NotImplementedException();
+        waste = product;
+        return true;
     }
 
-    private T? Pump<T>(object subject, object[] arguments)
+    private Result<object, TError> Pump(object subject, object[] arguments)
     {
         var type = subject.GetType();
-        var method = type.GetMethod("Pump");
-        return (T?)method!.Invoke(subject, arguments);
+        var method = type.GetMethod(
+            "Pump",
+            BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly
+        );
+        var result = method!.Invoke(subject, arguments);
+        var extract = result!.GetType();
+        var isSuccessful = extract.GetProperty("IsSuccessful");
+        var value = extract.GetProperty("Value");
+        var error = extract.GetProperty("Error");
+        if (isSuccessful != null && isSuccessful.GetValue(result) is true)
+        {
+            return new Result<object, TError>(value!.GetValue(result)!);
+        }
+        else
+        {
+            return new Result<object, TError>((TError)error!.GetValue(result)!);
+        }
+    }
+
+    public bool HandleWaste<T>(out T? notWaste)
+    {
+        if (waste is T present)
+        {
+            notWaste = present;
+            return true;
+        }
+        else
+        {
+            notWaste = default;
+            return false;
+        }
+    }
+
+    public bool HandleError(out TError? mustError)
+    {
+        mustError = error;
+        return mustError.HasValue;
+    }
+
+    public bool HandleException(out Exception? mustException)
+    {
+        mustException = exception;
+        return mustException != null;
     }
 }

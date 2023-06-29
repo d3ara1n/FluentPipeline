@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using DotNext;
+﻿using DotNext;
 using IBuilder;
+using System;
 
 namespace FluentPipeline;
 
@@ -72,32 +70,6 @@ public class ProcessBuilderIO<TError, TP, TI, TO> : ProcessBuilderO<TError, TP, 
     public override Process<TError, TP> Build()
     {
         var process = new ProcessIO<TError, TP, TI, TO>(_process);
-        return process;
-    }
-
-    public ProcessBuilderI<TError, TP, TI> Then(Func<TP, TI, Result<TError>> process)
-    {
-        return _parent.Then(_parent, process);
-    }
-}
-
-public class ProcessBuilderI<TError, TP, TI> : ProcessBuilder<TError, TP>
-    where TError : struct, Enum
-{
-    private readonly Func<TP, TI, Result<TError>> _process;
-
-    internal ProcessBuilderI(
-        PipelineBuilder<TError, TP> parent,
-        Func<TP, TI, Result<TError>> process
-    )
-        : base(parent, null!)
-    {
-        _process = process;
-    }
-
-    public override Process<TError, TP> Build()
-    {
-        var process = new ProcessI<TError, TP, TI>(_process);
         return process;
     }
 }

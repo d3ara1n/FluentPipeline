@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using DotNext;
+﻿using DotNext;
+using System;
 
 namespace FluentPipeline;
 
@@ -31,7 +30,7 @@ public class ProcessO<TError, TP, TO> : Process<TError, TP>
         _process = process;
     }
 
-    internal Result<TO, TError> Pump(TP product)
+    internal new Result<TO, TError> Pump(TP product)
     {
         return _process.Invoke(product);
     }
@@ -49,23 +48,6 @@ public class ProcessIO<TError, TP, TI, TO> : Process<TError, TP>
     }
 
     internal Result<TO, TError> Pump(TP product, TI intermediate)
-    {
-        return _process.Invoke(product, intermediate);
-    }
-}
-
-public class ProcessI<TError, TP, TI> : Process<TError, TP>
-    where TError : struct, Enum
-{
-    private readonly Func<TP, TI, Result<TError>> _process;
-
-    internal ProcessI(Func<TP, TI, Result<TError>> process)
-        : base(null!)
-    {
-        _process = process;
-    }
-
-    internal Result<TError> Pump(TP product, TI intermediate)
     {
         return _process.Invoke(product, intermediate);
     }
