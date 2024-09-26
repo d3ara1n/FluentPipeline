@@ -1,0 +1,6 @@
+# FluentPipeline
+
+```csharp
+Pipeline.Create()
+    .
+```

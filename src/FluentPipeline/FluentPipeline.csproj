@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <Title>Fluent Pipeline</Title>
         <Authors>Dearain</Authors>
@@ -10,8 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DotNext" Version="4.13.0" />
-        <PackageReference Include="IBuilder" Version="0.1.0" />
+        <PackageReference Include="IBuilder" Version="0.3.0" />
     </ItemGroup>
 
 </Project>
